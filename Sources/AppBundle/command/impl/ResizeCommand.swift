@@ -7,6 +7,13 @@ struct ResizeCommand: Command { // todo cover with tests
 
     func run(_ env: CmdEnv, _ io: CmdIo) -> Bool {
         guard let target = args.resolveTargetOrReportError(env, io) else { return false }
+        let scrollCandidates = target.windowOrNil?.parentsWithSelf
+            .filter { ($0.parent as? TilingContainer)?.layout == .scroll } ?? []
+        if let scrollNode = scrollCandidates.first,
+           let scrollContainer = scrollNode.parent as? TilingContainer
+        {
+            return resizeInScrollLayout(scrollContainer, args: args, io: io)
+        }
 
         let candidates = target.windowOrNil?.parentsWithSelf
             .filter { ($0.parent as? TilingContainer)?.layout == .tiles }
@@ -50,4 +57,33 @@ struct ResizeCommand: Command { // todo cover with tests
         node.setWeight(orientation, node.getWeight(orientation) + diff)
         return true
     }
+}
+
+@MainActor
+private func resizeInScrollLayout(_ container: TilingContainer, args: ResizeCmdArgs, io: CmdIo) -> Bool {
+    let ratioRange: ClosedRange<CGFloat> = 0.5 ... 1.0
+
+    switch args.dimension.val {
+        case .smart:
+            break
+        case .smartOpposite:
+            return io.err("resize smart-opposite is unsupported in scroll layout")
+        case .width:
+            guard container.orientation == .h else { return io.err("resize width is incompatible with v_scroll") }
+        case .height:
+            guard container.orientation == .v else { return io.err("resize height is incompatible with h_scroll") }
+    }
+
+    let currentRatio = (container.scrollMainPaneRatio ?? CGFloat(config.scrollMainPaneRatio)).coerceIn(ratioRange)
+    let step = CGFloat(config.scrollMainPaneRatioStep)
+    let newRatio: CGFloat = switch args.units.val {
+        case .set(let unit):
+            CGFloat(unit) / 100
+        case .add(let unit):
+            currentRatio + CGFloat(unit) * step / 100
+        case .subtract(let unit):
+            currentRatio - CGFloat(unit) * step / 100
+    }
+    container.scrollMainPaneRatio = newRatio.coerceIn(ratioRange)
+    return true
 }

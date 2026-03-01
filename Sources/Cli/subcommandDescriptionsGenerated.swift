@@ -38,4 +38,5 @@ let subcommandDescriptions = [
     ["  volume", "Manipulate volume"],
     ["  workspace-back-and-forth", "Switch between the focused workspace and previously focused workspace back and forth"],
     ["  workspace", "Focus the specified workspace"],
+    ["  workspace-overview", "Show and navigate workspaces on a monitor"],
 ]

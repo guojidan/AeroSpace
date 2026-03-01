@@ -5,6 +5,7 @@ final class TilingContainer: TreeNode, NonLeafTreeNodeObject { // todo consider 
     fileprivate var _orientation: Orientation
     var orientation: Orientation { _orientation }
     var layout: Layout
+    var scrollMainPaneRatio: CGFloat? = nil
 
     @MainActor
     init(parent: NonLeafTreeNodeObject, adaptiveWeight: CGFloat, _ orientation: Orientation, _ layout: Layout, index: Int) {
@@ -58,6 +59,7 @@ extension TilingContainer {
 enum Layout: String {
     case tiles
     case accordion
+    case scroll
 }
 
 extension String {
@@ -66,6 +68,8 @@ extension String {
             return parsed
         } else if self == "list" {
             return .tiles
+        } else if self == "h_scroll" || self == "v_scroll" {
+            return .scroll
         } else {
             return nil
         }

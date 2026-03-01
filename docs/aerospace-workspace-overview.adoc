@@ -1,0 +1,44 @@
+= aerospace-workspace-overview(1)
+include::util/man-attributes.adoc[]
+:manname: aerospace-workspace-overview
+// tag::purpose[]
+:manpurpose: Show workspace overview
+// end::purpose[]
+
+// =========================================================== Synopsis
+== Synopsis
+[verse]
+// tag::synopsis[]
+aerospace workspace-overview [-h|--help] [--monitor <monitor>] [--no-gui]
+
+// end::synopsis[]
+
+// =========================================================== Description
+== Description
+
+// tag::body[]
+{manpurpose}
+
+The command is useful together with `workspace next|prev|up|down`
+to inspect workspace names and navigation order before switching.
+
+// =========================================================== Options
+include::util/conditional-options-header.adoc[]
+
+-h, --help:: Print help
+--monitor <monitor>:: Target monitor. Possible values: `<monitor-id>|focused|mouse|all`
+--no-gui:: Print workspace names to stdout instead of opening the GUI overview panel
+
+// =========================================================== Examples
+include::util/conditional-examples-header.adoc[]
+
+* Open workspace overview: +
+`aerospace workspace-overview`
+
+* Switch to the previous workspace with the `up` alias: +
+`aerospace workspace up`
+
+// end::body[]
+
+// =========================================================== Footer
+include::util/man-footer.adoc[]

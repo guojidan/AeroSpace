@@ -13,7 +13,7 @@ public struct WorkspaceCmdArgs: CmdArgs {
             "--stdin": optionalTrueBoolFlag(\.explicitStdinFlag),
             "--no-stdin": optionalFalseBoolFlag(\.explicitStdinFlag),
         ],
-        posArgs: [newArgParser(\.target, parseWorkspaceTarget, mandatoryArgPlaceholder: workspaceTargetPlaceholder)],
+        posArgs: [newArgParser(\.target, parseWorkspaceCmdTarget, mandatoryArgPlaceholder: workspaceCmdTargetPlaceholder)],
         conflictingOptions: [
             ["--stdin", "--no-stdin"],
         ],
@@ -28,11 +28,11 @@ public struct WorkspaceCmdArgs: CmdArgs {
 
 public func parseWorkspaceCmdArgs(_ args: StrArrSlice) -> ParsedCmd<WorkspaceCmdArgs> {
     parseSpecificCmdArgs(WorkspaceCmdArgs(rawArgs: args), args)
-        .filter("--wrapAround requires using \(NextPrev.unionLiteral) argument") { ($0._wrapAround != nil).implies($0.target.val.isRelatve) }
-        .filterNot("--auto-back-and-forth is incompatible with \(NextPrev.unionLiteral)") { $0._autoBackAndForth != nil && $0.target.val.isRelatve }
-        .filterNot("--fail-if-noop is incompatible with \(NextPrev.unionLiteral)") { $0.failIfNoop && $0.target.val.isRelatve }
+        .filter("--wrapAround requires using \(workspaceCmdRelativeDirectionLiteral) argument") { ($0._wrapAround != nil).implies($0.target.val.isRelatve) }
+        .filterNot("--auto-back-and-forth is incompatible with \(workspaceCmdRelativeDirectionLiteral)") { $0._autoBackAndForth != nil && $0.target.val.isRelatve }
+        .filterNot("--fail-if-noop is incompatible with \(workspaceCmdRelativeDirectionLiteral)") { $0.failIfNoop && $0.target.val.isRelatve }
         .filterNot("--fail-if-noop is incompatible with --auto-back-and-forth") { $0.autoBackAndForth && $0.failIfNoop }
-        .filter("--stdin and --no-stdin require using \(NextPrev.unionLiteral) argument") { ($0.explicitStdinFlag != nil).implies($0.target.val.isRelatve) }
+        .filter("--stdin and --no-stdin require using \(workspaceCmdRelativeDirectionLiteral) argument") { ($0.explicitStdinFlag != nil).implies($0.target.val.isRelatve) }
 }
 
 extension WorkspaceCmdArgs {
@@ -62,6 +62,16 @@ public enum WorkspaceTarget: Equatable, Sendable {
 }
 
 let workspaceTargetPlaceholder = "(<workspace-name>|next|prev)"
+let workspaceCmdTargetPlaceholder = "(<workspace-name>|next|prev|up|down)"
+let workspaceCmdRelativeDirectionLiteral = "(next|prev|up|down)"
+
+func parseWorkspaceCmdTarget(i: ArgParserInput) -> ParsedCliArgs<WorkspaceTarget> {
+    switch i.arg {
+        case "next", "down": .succ(.relative(.next), advanceBy: 1)
+        case "prev", "up": .succ(.relative(.prev), advanceBy: 1)
+        default: parseWorkspaceTarget(i: i)
+    }
+}
 
 func parseWorkspaceTarget(i: ArgParserInput) -> ParsedCliArgs<WorkspaceTarget> {
     switch i.arg {

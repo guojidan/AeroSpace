@@ -39,14 +39,7 @@ struct WorkspaceCommand: Command {
 }
 
 @MainActor func getNextPrevWorkspace(current: Workspace, isNext: Bool, wrapAround: Bool, stdin: String?, target: LiveFocus) -> Workspace? {
-    let stdinWorkspaces: [String] = stdin?.split(separator: "\n").map { String($0).trim() }.filter { !$0.isEmpty } ?? []
-    let currentMonitor = current.workspaceMonitor
-    let workspaces: [Workspace] = stdin != nil
-        ? stdinWorkspaces.map { Workspace.get(byName: $0) }
-        : Workspace.all.filter { $0.workspaceMonitor.rect.topLeftCorner == currentMonitor.rect.topLeftCorner }
-            .toSet()
-            .union([current])
-            .sorted()
+    let workspaces: [Workspace] = getRelativeWorkspaceCandidates(current: current, stdin: stdin)
     let index = workspaces.firstIndex(where: { $0 == target.workspace }) ?? 0
     let workspace: Workspace? = if wrapAround {
         workspaces.get(wrappingIndex: isNext ? index + 1 : index - 1)
@@ -54,4 +47,16 @@ struct WorkspaceCommand: Command {
         workspaces.getOrNil(atIndex: isNext ? index + 1 : index - 1)
     }
     return workspace
+}
+
+@MainActor
+func getRelativeWorkspaceCandidates(current: Workspace, stdin: String?) -> [Workspace] {
+    let stdinWorkspaces: [String] = stdin?.split(separator: "\n").map { String($0).trim() }.filter { !$0.isEmpty } ?? []
+    let currentMonitor = current.workspaceMonitor
+    return stdin != nil
+        ? stdinWorkspaces.map { Workspace.get(byName: $0) }
+        : Workspace.all.filter { $0.workspaceMonitor.rect.topLeftCorner == currentMonitor.rect.topLeftCorner }
+            .toSet()
+            .union([current])
+            .sorted()
 }

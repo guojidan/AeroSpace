@@ -183,6 +183,31 @@ final class ConfigTest: XCTestCase {
         )
     }
 
+    func testParseScrollMainPaneRatios() {
+        let (config, errors) = parseConfig(
+            """
+            scroll-main-pane-ratio = 0.75
+            scroll-main-pane-ratio-step = 0.1
+            """,
+        )
+        assertEquals(errors.descriptions, [])
+        assertEquals(config.scrollMainPaneRatio, 0.75)
+        assertEquals(config.scrollMainPaneRatioStep, 0.1)
+    }
+
+    func testParseScrollMainPaneRatiosOutOfBounds() {
+        let (_, errors) = parseConfig(
+            """
+            scroll-main-pane-ratio = 0.4
+            scroll-main-pane-ratio-step = 0
+            """,
+        )
+        assertEquals(errors.descriptions, [
+            "scroll-main-pane-ratio: The ratio must be in [0.5, 1.0] range",
+            "scroll-main-pane-ratio-step: The ratio step must be in (0, 1.0] range",
+        ])
+    }
+
     func testTomlParseError() {
         let (_, errors) = parseConfig("true")
         assertEquals(
@@ -197,9 +222,9 @@ final class ConfigTest: XCTestCase {
     }
 
     func testParseTiles() {
-        let command = parseCommand("layout tiles h_tiles v_tiles list h_list v_list").cmdOrNil
+        let command = parseCommand("layout tiles h_tiles v_tiles list h_list v_list scroll h_scroll v_scroll").cmdOrNil
         XCTAssertTrue(command is LayoutCommand)
-        assertEquals((command as! LayoutCommand).args.toggleBetween.val, [.tiles, .h_tiles, .v_tiles, .tiles, .h_tiles, .v_tiles])
+        assertEquals((command as! LayoutCommand).args.toggleBetween.val, [.tiles, .h_tiles, .v_tiles, .tiles, .h_tiles, .v_tiles, .scroll, .h_scroll, .v_scroll])
 
         guard case .help = parseCommand("layout tiles -h") else {
             XCTFail()

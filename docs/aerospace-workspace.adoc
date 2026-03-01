@@ -10,7 +10,7 @@ include::util/man-attributes.adoc[]
 [verse]
 // tag::synopsis[]
 aerospace workspace [-h|--help] [--auto-back-and-forth] [--fail-if-noop] <workspace-name>
-aerospace workspace [-h|--help] [--wrap-around] [--stdin|--no-stdin] (next|prev)
+aerospace workspace [-h|--help] [--wrap-around] [--stdin|--no-stdin] (next|prev|up|down)
 
 // end::synopsis[]
 
@@ -22,9 +22,11 @@ aerospace workspace [-h|--help] [--wrap-around] [--stdin|--no-stdin] (next|prev)
 
 {manpurpose}
 
-*2. (next|prev) syntax*
+*2. (next|prev|up|down) syntax*
 
-Focuses next or previous workspace in *the list*.
+Focuses workspace in *the list* relative to the currently focused workspace.
+`next` and `down` focus the next workspace in *the list*.
+`prev` and `up` focus the previous workspace in *the list*.
 
 * If `--stdin` is specified, then *the list* is taken from stdin
 * Otherwise, *the list* is defined as all workspaces on focused monitor in alphabetical order
@@ -33,7 +35,7 @@ Focuses next or previous workspace in *the list*.
 include::util/conditional-options-header.adoc[]
 
 -h, --help:: Print help
---wrap-around:: Make it possible to jump between first and last workspaces using `(next|prev)`
+--wrap-around:: Make it possible to jump between first and last workspaces using `(next|prev|up|down)`
 
 --auto-back-and-forth::
 Automatic `back-and-forth` when switching to already focused workspace.
@@ -56,6 +58,8 @@ include::util/conditional-examples-header.adoc[]
 
 * Go to the next non empty workspace on the focused monitor: +
 `aerospace list-workspaces --monitor focused --empty no | aerospace workspace next`
+* Go to the previous workspace in the same list using the `up` alias: +
+`aerospace workspace up`
 
 // end::body[]
 

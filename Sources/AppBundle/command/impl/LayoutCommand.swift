@@ -22,10 +22,16 @@ struct LayoutCommand: Command {
                 return changeTilingLayout(io, targetLayout: .tiles, targetOrientation: .h, window: window)
             case .v_tiles:
                 return changeTilingLayout(io, targetLayout: .tiles, targetOrientation: .v, window: window)
+            case .h_scroll:
+                return changeTilingLayout(io, targetLayout: .scroll, targetOrientation: .h, window: window)
+            case .v_scroll:
+                return changeTilingLayout(io, targetLayout: .scroll, targetOrientation: .v, window: window)
             case .accordion:
                 return changeTilingLayout(io, targetLayout: .accordion, targetOrientation: nil, window: window)
             case .tiles:
                 return changeTilingLayout(io, targetLayout: .tiles, targetOrientation: nil, window: window)
+            case .scroll:
+                return changeTilingLayout(io, targetLayout: .scroll, targetOrientation: nil, window: window)
             case .horizontal:
                 return changeTilingLayout(io, targetLayout: nil, targetOrientation: .h, window: window)
             case .vertical:
@@ -57,10 +63,15 @@ struct LayoutCommand: Command {
     guard let parent = window.parent else { return false }
     switch parent.cases {
         case .tilingContainer(let parent):
-            let targetOrientation = targetOrientation ?? parent.orientation
-            let targetLayout = targetLayout ?? parent.layout
-            parent.layout = targetLayout
-            parent.changeOrientation(targetOrientation)
+            let resolvedLayout = targetLayout ?? parent.layout
+            if resolvedLayout == .scroll {
+                parent.layout = .scroll
+                parent.changeOrientation(targetOrientation ?? parent.orientation)
+                return true
+            }
+            let resolvedOrientation = targetOrientation ?? parent.orientation
+            parent.layout = resolvedLayout
+            parent.changeOrientation(resolvedOrientation)
             return true
         case .workspace, .macosMinimizedWindowsContainer, .macosFullscreenWindowsContainer,
              .macosPopupWindowsContainer, .macosHiddenAppsWindowsContainer:
@@ -73,12 +84,15 @@ extension Window {
         return switch layout {
             case .accordion:   (parent as? TilingContainer)?.layout == .accordion
             case .tiles:       (parent as? TilingContainer)?.layout == .tiles
+            case .scroll:      (parent as? TilingContainer)?.layout == .scroll
             case .horizontal:  (parent as? TilingContainer)?.orientation == .h
             case .vertical:    (parent as? TilingContainer)?.orientation == .v
             case .h_accordion: (parent as? TilingContainer).map { $0.layout == .accordion && $0.orientation == .h } == true
             case .v_accordion: (parent as? TilingContainer).map { $0.layout == .accordion && $0.orientation == .v } == true
             case .h_tiles:     (parent as? TilingContainer).map { $0.layout == .tiles && $0.orientation == .h } == true
             case .v_tiles:     (parent as? TilingContainer).map { $0.layout == .tiles && $0.orientation == .v } == true
+            case .h_scroll:    (parent as? TilingContainer).map { $0.layout == .scroll && $0.orientation == .h } == true
+            case .v_scroll:    (parent as? TilingContainer).map { $0.layout == .scroll && $0.orientation == .v } == true
             case .tiling:      parent is TilingContainer
             case .floating:    parent is Workspace
         }

@@ -58,7 +58,7 @@ let join_with_help_generated = """
     """
 let layout_help_generated = """
     USAGE: layout [-h|--help] [--window-id <window-id>]
-                  (h_tiles|v_tiles|h_accordion|v_accordion|tiles|accordion|horizontal|vertical|tiling|floating)...
+                  (h_tiles|v_tiles|h_accordion|v_accordion|h_scroll|v_scroll|tiles|accordion|scroll|horizontal|vertical|tiling|floating)...
     """
 let list_apps_help_generated = """
     USAGE: list-apps [-h|--help] [--macos-native-hidden [no]] [--format <output-format>] [--count] [--json]
@@ -150,5 +150,8 @@ let workspace_back_and_forth_help_generated = """
     """
 let workspace_help_generated = """
     USAGE: workspace [-h|--help] [--auto-back-and-forth] [--fail-if-noop] <workspace-name>
-       OR: workspace [-h|--help] [--wrap-around] [--stdin|--no-stdin] (next|prev)
+       OR: workspace [-h|--help] [--wrap-around] [--stdin|--no-stdin] (next|prev|up|down)
+    """
+let workspace_overview_help_generated = """
+    USAGE: workspace-overview [-h|--help] [--monitor <monitor>] [--no-gui]
     """

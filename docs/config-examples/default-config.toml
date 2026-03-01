@@ -24,8 +24,17 @@ enable-normalization-opposite-orientation-for-nested-containers = true
 # The 'accordion-padding' specifies the size of accordion padding
 # You can set 0 to disable the padding feature
 accordion-padding = 30
+# The 'scroll-peek-padding' specifies how much of immediate neighbors remain visible in 'scroll' layouts
+# You can set 0 to disable the peek feature
+scroll-peek-padding = 32
+# The 'scroll-main-pane-ratio' defines the size of the focused pane in 'scroll' layouts.
+# The value is in [0.5, 1.0] range
+scroll-main-pane-ratio = 0.9
+# The 'scroll-main-pane-ratio-step' controls how much 'resize' changes the ratio in 'scroll' layouts.
+# The value is in (0, 1.0] range
+scroll-main-pane-ratio-step = 0.05
 
-# Possible values: tiles|accordion
+# Possible values: tiles|accordion|scroll
 default-root-container-layout = 'tiles'
 
 # Possible values: horizontal|vertical|auto
@@ -113,13 +122,19 @@ on-mode-changed = []
     # '''
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#layout
-    alt-slash = 'layout tiles horizontal vertical'
-    alt-comma = 'layout accordion horizontal vertical'
+    # Migration note:
+    # - alt-slash now opens workspace overview (niri-like workflow)
+    # - layout toggles moved to alt-backslash / alt-period
+    alt-backslash = 'layout tiles horizontal vertical'
+    alt-period = 'layout accordion horizontal vertical'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#focus
+    # Migration note:
+    # - alt-j / alt-k now switch workspaces down/up (niri-like workflow)
+    # - focus up/down moved to alt-ctrl-j / alt-ctrl-k
     alt-h = 'focus left'
-    alt-j = 'focus down'
-    alt-k = 'focus up'
+    alt-ctrl-j = 'focus down'
+    alt-ctrl-k = 'focus up'
     alt-l = 'focus right'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#move
@@ -133,6 +148,9 @@ on-mode-changed = []
     alt-equal = 'resize smart +50'
 
     # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
+    alt-slash = 'workspace-overview'
+    alt-j = 'workspace down'
+    alt-k = 'workspace up'
     alt-1 = 'workspace 1'
     alt-2 = 'workspace 2'
     alt-3 = 'workspace 3'

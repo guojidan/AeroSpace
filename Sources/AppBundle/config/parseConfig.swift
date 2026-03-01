@@ -113,6 +113,15 @@ private let configParser: [String: any ParserProtocol<Config>] = [
     "auto-reload-config": Parser(\.autoReloadConfig, parseBool),
     "automatically-unhide-macos-hidden-apps": Parser(\.automaticallyUnhideMacosHiddenApps, parseBool),
     "accordion-padding": Parser(\.accordionPadding, parseInt),
+    "scroll-peek-padding": Parser(\.scrollPeekPadding, parseInt),
+    "scroll-main-pane-ratio": Parser(\.scrollMainPaneRatio) { raw, backtrace in
+        parseDouble(raw, backtrace)
+            .filter(.semantic(backtrace, "The ratio must be in [0.5, 1.0] range")) { (0.5 ... 1.0).contains($0) }
+    },
+    "scroll-main-pane-ratio-step": Parser(\.scrollMainPaneRatioStep) { raw, backtrace in
+        parseDouble(raw, backtrace)
+            .filter(.semantic(backtrace, "The ratio step must be in (0, 1.0] range")) { $0 > 0 && $0 <= 1.0 }
+    },
     persistentWorkspacesKey: Parser(\.persistentWorkspaces, parsePersistentWorkspaces),
     "exec-on-workspace-change": Parser(\.execOnWorkspaceChange, parseArrayOfStrings),
     "exec": Parser(\.execConfig, parseExecConfig),
@@ -247,6 +256,16 @@ func parseConfigVersion(_ raw: TOMLValueConvertible, _ backtrace: TomlBacktrace)
 
 func parseInt(_ raw: TOMLValueConvertible, _ backtrace: TomlBacktrace) -> ParsedToml<Int> {
     raw.int.orFailure(expectedActualTypeError(expected: .int, actual: raw.type, backtrace))
+}
+
+func parseDouble(_ raw: TOMLValueConvertible, _ backtrace: TomlBacktrace) -> ParsedToml<Double> {
+    if let val = raw.double {
+        return .success(val)
+    } else if let intVal = raw.int {
+        return .success(Double(intVal))
+    } else {
+        return .failure(expectedActualTypeError(expected: [.double, .int], actual: raw.type, backtrace))
+    }
 }
 
 func parseString(_ raw: TOMLValueConvertible, _ backtrace: TomlBacktrace) -> ParsedToml<String> {

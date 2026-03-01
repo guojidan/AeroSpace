@@ -46,6 +46,8 @@ extension TreeNode {
                         try await container.layoutTiles(point, width: width, height: height, virtual: virtual, context)
                     case .accordion:
                         try await container.layoutAccordion(point, width: width, height: height, virtual: virtual, context)
+                    case .scroll:
+                        try await container.layoutScroll(point, width: width, height: height, virtual: virtual, context)
                 }
             case .macosMinimizedWindowsContainer, .macosFullscreenWindowsContainer,
                  .macosPopupWindowsContainer, .macosHiddenAppsWindowsContainer:
@@ -159,6 +161,65 @@ extension TilingContainer {
                         width: width,
                         height: height - lPadding - rPadding,
                         virtual: virtual,
+                        context,
+                    )
+            }
+        }
+    }
+
+    @MainActor
+    fileprivate func layoutScroll(_ point: CGPoint, width: CGFloat, height: CGFloat, virtual: Rect, _ context: LayoutContext) async throws {
+        guard let focusedIndex: Int = mostRecentChild?.ownIndex else { return }
+        let axisLength = orientation == .h ? width : height
+        let ratioRange: ClosedRange<CGFloat> = 0.5 ... 1.0
+        let mainRatio = (scrollMainPaneRatio ?? CGFloat(config.scrollMainPaneRatio)).coerceIn(ratioRange)
+        let mainPaneLength = (axisLength * mainRatio).coerceIn(0 ... axisLength)
+        let restLength = axisLength - mainPaneLength
+
+        let hasLeftNeighbor = focusedIndex > 0
+        let hasRightNeighbor = focusedIndex < children.count - 1
+        let visibleNeighborCount = CGFloat((hasLeftNeighbor ? 1 : 0) + (hasRightNeighbor ? 1 : 0))
+        let sharedNeighborLength = visibleNeighborCount > 0 ? restLength / visibleNeighborCount : 0
+        let peek = max(
+            CGFloat(config.scrollPeekPadding).coerceIn(0 ... max(axisLength, 0)),
+            sharedNeighborLength
+        )
+        let mainStart = (orientation == .h ? point.x : point.y) + (axisLength - mainPaneLength) / 2
+
+        for (index, child) in children.enumerated() {
+            let virtualRect = Rect(
+                topLeftX: virtual.topLeftX + (orientation == .h ? CGFloat(index) * virtual.width : 0),
+                topLeftY: virtual.topLeftY + (orientation == .v ? CGFloat(index) * virtual.height : 0),
+                width: virtual.width,
+                height: virtual.height,
+            )
+
+            let distanceFromFocused = index - focusedIndex
+            switch orientation {
+                case .h:
+                    let x: CGFloat = switch distanceFromFocused {
+                        case 0: mainStart
+                        case let d where d < 0: mainStart - CGFloat(-d) * width + peek
+                        default: mainStart + mainPaneLength - peek + CGFloat(distanceFromFocused - 1) * width
+                    }
+                    try await child.layoutRecursive(
+                        CGPoint(x: x, y: point.y),
+                        width: distanceFromFocused == 0 ? mainPaneLength : width,
+                        height: height,
+                        virtual: virtualRect,
+                        context,
+                    )
+                case .v:
+                    let y: CGFloat = switch distanceFromFocused {
+                        case 0: mainStart
+                        case let d where d < 0: mainStart - CGFloat(-d) * height + peek
+                        default: mainStart + mainPaneLength - peek + CGFloat(distanceFromFocused - 1) * height
+                    }
+                    try await child.layoutRecursive(
+                        CGPoint(x: point.x, y: y),
+                        width: width,
+                        height: distanceFromFocused == 0 ? mainPaneLength : height,
+                        virtual: virtualRect,
                         context,
                     )
             }
